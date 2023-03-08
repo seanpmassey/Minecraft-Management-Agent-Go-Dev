@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func listusers(serverstring string, password string) {
+func userlist(serverstring string, password string) {
 
 	command = "list"
 	response, err := rconconnect(serverstring, password, command)

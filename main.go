@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	//"strings"
 
@@ -63,7 +65,7 @@ func PopulateConfig(filePath string) {
 	if err != nil {
 		fmt.Printf("error: %v\n", err)
 	}
-	fmt.Println("GLOBAL=> ", globalconfig)
+	//fmt.Println("GLOBAL=> ", globalconfig)
 
 }
 
@@ -77,7 +79,52 @@ func main() {
 
 	serverstring := globalconfig.Server + ":" + globalconfig.Port
 
-	listusers(serverstring, globalconfig.Password)
+	userCMD := flag.NewFlagSet("User", flag.ExitOnError)
+	listusers := userCMD.Bool("listusers", false, "listusers")
+	//userName := userCMD.String("username", "", "username")
+
+	opsCMD := flag.NewFlagSet("Ops", flag.ExitOnError)
+	addops := opsCMD.Bool("addops", false, "addops")
+	removeops := opsCMD.Bool("removeops", false, "removeops")
+	opsuser := opsCMD.String("opsuser", "", "opsuser")
+
+	serverCMD := flag.NewFlagSet("Server", flag.ExitOnError)
+	saveall := serverCMD.Bool("saveall", false, "saveall")
+	//userName := userCMD.String("username", "", "username")
+
+	fmt.Println(os.Args)
+	switch os.Args[1] {
+	case "user":
+		userCMD.Parse(os.Args[2:])
+		//listusers := *listusers
+		//var listusersbool = listusers
+
+		if *listusers == true {
+			//fmt.Println("listusers is true")
+			userlist(serverstring, globalconfig.Password)
+		}
+	case "ops":
+		opsCMD.Parse(os.Args[2:])
+
+		if *addops == true {
+			opsadd(serverstring, globalconfig.Password, *opsuser)
+		}
+		if *removeops == true {
+			opsremove(serverstring, globalconfig.Password, *opsuser)
+		}
+	case "server":
+		serverCMD.Parse(os.Args[2:])
+
+		if *saveall == true {
+			serversaveall(serverstring, globalconfig.Password)
+		}
+	default:
+		fmt.Println("expected 'user' or 'ops' subcommands")
+		os.Exit(1)
+
+	}
+
+	//userlist(serverstring, globalconfig.Password)
 }
 
 // func listusers(serverstring string) {
