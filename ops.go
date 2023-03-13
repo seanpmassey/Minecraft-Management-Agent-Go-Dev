@@ -7,7 +7,7 @@ import (
 
 func opsadd(serverstring string, password string, opsuser string) {
 
-	command = "ops" + opsuser
+	command = "ops " + opsuser
 	response, err := rconconnect(serverstring, password, command)
 	if err != nil {
 		log.Fatal(err)
@@ -21,7 +21,7 @@ func opsadd(serverstring string, password string, opsuser string) {
 
 func opsremove(serverstring string, password string, opsuser string) {
 
-	command = "deop" + opsuser
+	command = "deop " + opsuser
 	response, err := rconconnect(serverstring, password, command)
 	if err != nil {
 		log.Fatal(err)

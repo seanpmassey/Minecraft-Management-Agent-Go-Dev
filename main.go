@@ -2,21 +2,23 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io/ioutil"
+
+	//"io/ioutil"
 	"log"
 	"os"
 
 	//"strings"
 
 	mcrcon "github.com/Kelwing/mc-rcon"
-	yaml "gopkg.in/yaml.v2"
+	//yaml "gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Server   string `yaml:"server"`
-	Port     string `yaml:"port"`
-	Password string `yaml:"password"`
+	Server          string `yaml:"server"`
+	Port            string `yaml:"port"`
+	Password        string `yaml:"password"`
+	Properties      string `yaml:"properties"`
+	DefaultGameMode string
 }
 
 var command string
@@ -24,48 +26,32 @@ var globalconfig Config
 
 func init() {
 	PopulateConfig("config.yml")
+
+	if globalconfig.Properties != "" {
+		ReadServerProperties(globalconfig.Properties)
+	}
 }
 
 func rconconnect(server string, password string, command string) (string, error) {
 	conn := new(mcrcon.MCConn)
 	err := conn.Open(server, password)
 	if err != nil {
-		log.Fatalln("Open failed", err)
+		log.Fatalln("Error: Open failed", err)
 	}
 	defer conn.Close()
 
 	err = conn.Authenticate()
 	if err != nil {
-		log.Fatalln("Auth failed", err)
+		log.Fatalln("Error: Auth failed", err)
 	}
 
 	response := ""
 	response, err = conn.SendCommand(command)
 	if err != nil {
-		log.Fatalln("Command failed", err)
+		log.Fatalln("Error: Command failed", err)
 	}
 
 	return response, err
-
-}
-
-func PopulateConfig(filePath string) {
-	data, err := ioutil.ReadFile(filePath)
-
-	// Read the file
-	//data, err := ioutil.ReadFile("config.yml")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	//fmt.Println(data)
-
-	err = yaml.Unmarshal(data, &globalconfig)
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-	}
-	//fmt.Println("GLOBAL=> ", globalconfig)
 
 }
 
@@ -76,6 +62,11 @@ func main() {
 	// the time, source file, and line number.
 	log.SetPrefix("minecraftagent: ")
 	log.SetFlags(0)
+
+	if globalconfig.Server == "" {
+		log.Println("Info: No Server Name Set. Defaulting to localhost.")
+		globalconfig.Server = "localhost"
+	}
 
 	serverstring := globalconfig.Server + ":" + globalconfig.Port
 
@@ -90,9 +81,12 @@ func main() {
 
 	serverCMD := flag.NewFlagSet("Server", flag.ExitOnError)
 	saveall := serverCMD.Bool("saveall", false, "saveall")
+	setweather := serverCMD.Bool("setweather", false, "setweather")
+	weathertype := serverCMD.String("weathertype", "", "weathertype")
+	getDefaultgamemode := serverCMD.Bool("getdefaultgamemode", false, "getdefaultgamemode")
 	//userName := userCMD.String("username", "", "username")
 
-	fmt.Println(os.Args)
+	//fmt.Println(os.Args)
 	switch os.Args[1] {
 	case "user":
 		userCMD.Parse(os.Args[2:])
@@ -118,28 +112,22 @@ func main() {
 		if *saveall == true {
 			serversaveall(serverstring, globalconfig.Password)
 		}
+		if *setweather == true {
+			switch *weathertype {
+			case "clear", "rain", "thunder":
+				setserverweather(serverstring, globalconfig.Password, *weathertype)
+			default:
+				log.Println("Unknown Weather Type. Please select Clear, Rain, or Thunder.")
+			}
+		}
+		if *getDefaultgamemode == true {
+			//filepath := "server.properties"
+			getdefaultgamemode(globalconfig.Properties)
+		}
 	default:
-		fmt.Println("expected 'user' or 'ops' subcommands")
+		log.Println("expected 'user' 'ops' or 'server' subcommands")
 		os.Exit(1)
 
 	}
 
-	//userlist(serverstring, globalconfig.Password)
 }
-
-// func listusers(serverstring string) {
-
-// 	command = "list"
-// 	response, err := rconconnect(serverstring, password, command)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	log.Println(response)
-
-// 	parseresponse := strings.Split(response, ":")
-// 	trimusers := strings.TrimSpace(parseresponse[1])
-// 	parseusers := strings.Split(trimusers, ",")
-// 	fmt.Println(parseusers)
-// 	//userlist := parseusers[1:]
-// 	//fmt.Println(userlist)
-// }
