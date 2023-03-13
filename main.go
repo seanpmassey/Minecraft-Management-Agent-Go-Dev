@@ -84,6 +84,8 @@ func main() {
 	setweather := serverCMD.Bool("setweather", false, "setweather")
 	weathertype := serverCMD.String("weathertype", "", "weathertype")
 	getDefaultgamemode := serverCMD.Bool("getdefaultgamemode", false, "getdefaultgamemode")
+	setDefaultgamemode := serverCMD.Bool("setdefaultgamemode", false, "setdefaultgamemode")
+	newdefaultgamemode := serverCMD.String("gamemode", "", "gamemode")
 	//userName := userCMD.String("username", "", "username")
 
 	//fmt.Println(os.Args)
@@ -123,6 +125,18 @@ func main() {
 		if *getDefaultgamemode == true {
 			//filepath := "server.properties"
 			getdefaultgamemode(globalconfig.Properties)
+		}
+		if *setDefaultgamemode == true {
+			switch *newdefaultgamemode {
+			case "survival", "creative", "adventure", "spectator":
+				if *newdefaultgamemode != globalconfig.DefaultGameMode {
+					setdefaultgamemode(serverstring, globalconfig.Password, *newdefaultgamemode)
+					//validate that default game mode has been updated
+					ReadPropertiesDefaultGameMode(globalconfig.Properties)
+				}
+			default:
+				log.Println("Unknown Game Mode type. Please select survival, creative, adventure or spectator.")
+			}
 		}
 	default:
 		log.Println("expected 'user' 'ops' or 'server' subcommands")

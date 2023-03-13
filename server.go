@@ -25,7 +25,12 @@ func setserverweather(serverstring string, password string, weathertype string) 
 }
 
 func setdefaultgamemode(serverstring string, password string, gamemode string) {
-
+	command = "defaultgamemode " + gamemode
+	response, err := rconconnect(serverstring, password, command)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(response)
 }
 
 func getdefaultgamemode(filepath string) {
