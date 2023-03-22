@@ -71,22 +71,23 @@ func main() {
 	}
 
 	serverstring := globalconfig.Server + ":" + globalconfig.Port
+	log.Println("The server string is " + serverstring)
 
 	userCMD := flag.NewFlagSet("User", flag.ExitOnError)
-	listusers := userCMD.Bool("listusers", false, "listusers")
+	listusers := userCMD.Bool("listusers", false, "-listusers - List Users")
 	//userName := userCMD.String("username", "", "username")
 
 	opsCMD := flag.NewFlagSet("Ops", flag.ExitOnError)
-	addops := opsCMD.Bool("addops", false, "addops")
-	removeops := opsCMD.Bool("removeops", false, "removeops")
-	opsuser := opsCMD.String("opsuser", "", "opsuser")
+	addops := opsCMD.Bool("addops", false, "-addops -opsuser <username> - Grant operator rights to user")
+	removeops := opsCMD.Bool("removeops", false, "-removeops -opsuser <username> - Remove operator rights from user")
+	opsuser := opsCMD.String("opsuser", "", "-opsuser <username> - used with -addops or -removeops")
 
 	serverCMD := flag.NewFlagSet("Server", flag.ExitOnError)
-	saveall := serverCMD.Bool("saveall", false, "saveall")
-	setweather := serverCMD.Bool("setweather", false, "setweather")
-	weathertype := serverCMD.String("weathertype", "", "weathertype")
-	getDefaultgamemode := serverCMD.Bool("getdefaultgamemode", false, "getdefaultgamemode")
-	setDefaultgamemode := serverCMD.Bool("setdefaultgamemode", false, "setdefaultgamemode")
+	saveall := serverCMD.Bool("saveall", false, "-saveall - Writes active game data to disk")
+	setweather := serverCMD.Bool("setweather", false, "-setweather -weathertype <clear/rain/thunder> - Sets weather to clear, rain, or thunder")
+	weathertype := serverCMD.String("weathertype", "", "-weathertype <clear/rain/thunder> - used with -setweather switch")
+	getDefaultgamemode := serverCMD.Bool("getdefaultgamemode", false, "-getdefaultgamemode - Get default game mode")
+	setDefaultgamemode := serverCMD.Bool("setdefaultgamemode", false, "-setdefaultgamemode - Set new default game mode")
 	newdefaultgamemode := serverCMD.String("gamemode", "", "gamemode")
 	//userName := userCMD.String("username", "", "username")
 
@@ -99,6 +100,7 @@ func main() {
 
 		if *listusers == true {
 			//fmt.Println("listusers is true")
+			log.Println("Displaying Users...")
 			userlist(serverstring, globalconfig.Password)
 		}
 	case "ops":
@@ -114,6 +116,7 @@ func main() {
 		serverCMD.Parse(os.Args[2:])
 
 		if *saveall == true {
+			log.Println("Saving...")
 			serversaveall(serverstring, globalconfig.Password)
 		}
 		if *setweather == true {
@@ -155,7 +158,6 @@ func main() {
 		os.Exit(1)
 
 	}
-
 }
 
 func RemoteCheck(server string) error {
