@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 
 	//"io/ioutil"
@@ -23,6 +24,7 @@ type Config struct {
 
 var command string
 var globalconfig Config
+var notlocalhost = errors.New("The server is not local")
 
 func init() {
 	PopulateConfig("config.yml")
@@ -124,7 +126,12 @@ func main() {
 		}
 		if *getDefaultgamemode == true {
 			//filepath := "server.properties"
-			getdefaultgamemode(globalconfig.Properties)
+			err := RemoteCheck(globalconfig.Server)
+			if err != nil {
+				log.Fatal(err)
+			} else {
+				ReadPropertiesDefaultGameMode(globalconfig.Properties)
+			}
 		}
 		if *setDefaultgamemode == true {
 			switch *newdefaultgamemode {
@@ -132,7 +139,12 @@ func main() {
 				if *newdefaultgamemode != globalconfig.DefaultGameMode {
 					setdefaultgamemode(serverstring, globalconfig.Password, *newdefaultgamemode)
 					//validate that default game mode has been updated
-					ReadPropertiesDefaultGameMode(globalconfig.Properties)
+					err := RemoteCheck(globalconfig.Server)
+					if err != nil {
+						log.Fatal(err)
+					} else {
+						ReadPropertiesDefaultGameMode(globalconfig.Properties)
+					}
 				}
 			default:
 				log.Println("Unknown Game Mode type. Please select survival, creative, adventure or spectator.")
@@ -144,4 +156,12 @@ func main() {
 
 	}
 
+}
+
+func RemoteCheck(server string) error {
+	if server != "localhost" {
+		log.Fatalln("Agent operating in remote CLI mode. This command is only available when running locally on the server.")
+		return notlocalhost
+	}
+	return nil
 }
